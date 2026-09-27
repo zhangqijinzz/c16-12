@@ -1,5 +1,7 @@
 export type GuideKey = 'thirds' | 'center' | 'diagonal' | 'golden';
-export type Phase = 'loading' | 'ready' | 'editing' | 'error';
+export type Phase = 'loading' | 'ready' | 'available' | 'editing' | 'error';
+export type StablePhase = Exclude<Phase, 'loading' | 'error'>;
+export type ErrorSource = 'initialization' | 'image' | 'save';
 export type Ratio = 'free' | '1:1' | '4:5' | '16:9';
 
 export interface ImageAsset {
@@ -27,12 +29,22 @@ export interface FrameDocument {
   variants: CropVariant[];
 }
 
-export interface ViewState {
+export interface StatusError {
+  source: ErrorSource;
+  message: string;
+}
+
+export interface WorkStatus {
   phase: Phase;
+  message: string;
+  error: StatusError | null;
+  fallbackPhase: StablePhase;
+}
+
+export interface ViewState {
+  status: WorkStatus;
   document: FrameDocument;
   compareOpen: boolean;
-  notice: string;
-  error: string | null;
 }
 
 export const DEFAULT_CROP: CropVariant = {

@@ -24,6 +24,10 @@ export interface ImageService {
 
 export class BrowserImageService implements ImageService {
   readFile(file: File): Promise<ImageAsset> {
+    if (file.type && !file.type.startsWith('image/')) {
+      return Promise.reject(new Error('所选文件不是图片，请选择有效的图片文件。'));
+    }
+
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onerror = () => reject(new Error('图片读取失败，请换一张图片重试。'));

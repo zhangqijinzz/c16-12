@@ -9,9 +9,10 @@ interface CanvasStageProps {
   onSubject: (x: number, y: number) => void;
   onMoveCrop: (dx: number, dy: number) => void;
   onResizeCrop: (width: number, height: number) => void;
+  controlsLocked: boolean;
 }
 
-export function CanvasStage({ image, guides, crop, subject, onSubject, onMoveCrop, onResizeCrop }: CanvasStageProps) {
+export function CanvasStage({ image, guides, crop, subject, controlsLocked, onSubject, onMoveCrop, onResizeCrop }: CanvasStageProps) {
   const stageRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ mode: 'move' | 'resize'; x: number; y: number; crop: CropVariant } | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -23,6 +24,7 @@ export function CanvasStage({ image, guides, crop, subject, onSubject, onMoveCro
   };
 
   const startDrag = (event: PointerEvent, mode: 'move' | 'resize') => {
+    if (controlsLocked) return;
     event.stopPropagation();
     const point = pointFromEvent(event);
     if (!point) return;
@@ -44,14 +46,14 @@ export function CanvasStage({ image, guides, crop, subject, onSubject, onMoveCro
   const stopDrag = () => { dragRef.current = null; setDragging(false); };
 
   const clickStage = (event: PointerEvent) => {
-    if (dragging || (event.target as HTMLElement).closest('.crop-frame')) return;
+    if (controlsLocked || dragging || (event.target as HTMLElement).closest('.crop-frame')) return;
     const point = pointFromEvent(event);
     if (point) onSubject(point.x, point.y);
   };
 
   return (
     <div className="stage-shell">
-      <div className="canvas-stage" ref={stageRef} style={{ aspectRatio: `${image.width} / ${image.height}` }} onPointerDown={clickStage}>
+      <div className={`canvas-stage ${controlsLocked ? 'locked' : ''}`} ref={stageRef} style={{ aspectRatio: `${image.width} / ${image.height}` }} aria-busy={controlsLocked} onPointerDown={clickStage}>
         <img src={image.src} alt={image.name} draggable={false} />
         <div className="image-wash" />
         {guides.thirds && <div className="guide thirds-guide"><i /><i /><b /><b /></div>}
